@@ -119,65 +119,90 @@ test.describe.serial('Visitor Insurance', () => {
         await buyButton.scrollIntoViewIfNeeded();
 
         // ⏱️ Wait for 3 seconds before clicking the Buy button
-        console.log("⏳ Waiting for 3 seconds before clicking the Buy button...");
+        console.log("Waiting for 3 seconds before clicking the Buy button...");
         await page.waitForTimeout(3000);
 
         await buyButton.click({ force: true });
-        console.log("🛒 Successfully clicked the Buy button for Atlas Premium America!");
+        console.log(" Successfully clicked the Buy button for Atlas Premium America!");
         
         await page.waitForTimeout(4000); 
     });
 
-    test('12. Fill Traveler Information', async () => {
+   test('12. Fill Traveler Information', async () => {
         // Fill details for Traveler 1 to 7. DOBs are prepopulated by the page automatically.
         const travelers = [
-            { firstName: 'Neekhil', lastName: 'Sharma', gender: 'M', citizenship: 'IND', beneficiary: 'Jane Sharma' },
-            { firstName: 'Jane', lastName: 'Sharma', gender: 'F', citizenship: 'IND' },
-            { firstName: 'Bobby', lastName: 'Sharma', gender: 'M', citizenship: 'IND' },
-            { firstName: 'Billy', lastName: 'Sharma', gender: 'M', citizenship: 'IND' },
-            { firstName: 'Lily', lastName: 'Sharma', gender: 'F', citizenship: 'IND' },
-            { firstName: 'Lucy', lastName: 'Sharma', gender: 'F', citizenship: 'IND' },
-            { firstName: 'Sally', lastName: 'Sharma', gender: 'F', citizenship: 'IND' }
+            { firstName: 'Abhishek', lastName: 'Shukla', gender: 'M', citizenship: 'IND', beneficiary: 'Shushama Shukla' },
+            { firstName: 'Jane', lastName: 'Shukla', gender: 'F', citizenship: 'IND' },
+            { firstName: 'Bobby', lastName: 'Shukla', gender: 'M', citizenship: 'IND' },
+            { firstName: 'Billy', lastName: 'Shukla', gender: 'M', citizenship: 'IND' },
+            { firstName: 'Lily', lastName: 'Shukla', gender: 'F', citizenship: 'IND' },
+            { firstName: 'Lucy', lastName: 'Shukla', gender: 'F', citizenship: 'IND' },
+            { firstName: 'Sally', lastName: 'Shukla', gender: 'F', citizenship: 'IND' }
         ];
 
         for (let i = 0; i < travelers.length; i++) {
             const index = i + 1;
             const t = travelers[i];
 
-            console.log(`✍️ Filling details for Traveler ${index}: ${t.firstName} ${t.lastName}`);
+            console.log(`Filling details for Traveler ${index}: ${t.firstName} ${t.lastName}`);
+            
             await page.locator(`#tr_firstName${index}`).fill(t.firstName);
+            await page.waitForTimeout(2000);
+            
             await page.locator(`#tr_lastName${index}`).fill(t.lastName);
+            await page.waitForTimeout(2000);
+            
             await page.locator(`#tr_gender${index}`).selectOption(t.gender);
+            await page.waitForTimeout(2000);
+            
             await page.locator(`#country_of_citizenship${index}`).selectOption(t.citizenship);
+            await page.waitForTimeout(2000);
 
             if (index === 1 && t.beneficiary) {
                 await page.locator('#beneficiary_name').fill(t.beneficiary);
+                await page.waitForTimeout(2000);
             }
         }
         await page.waitForTimeout(2000);
     });
 
     test('13. Fill Mailing Address and Transition', async () => {
-        console.log("✍️ Filling Mailing Address details...");
-        await page.locator('#mailing_fname').fill('Neekhil');
-        await page.locator('#mailing_lname').fill('Sharma');
+        console.log(" Filling Mailing Address details...");
+        
+        await page.locator('#mailing_fname').fill('Abhishek');
+        await page.waitForTimeout(2000);
+        
+        await page.locator('#mailing_lname').fill('Shukla');
+        await page.waitForTimeout(2000);
+        
         await page.locator('#address1').fill('123 Main St');
+        await page.waitForTimeout(2000);
+        
         await page.locator('#city').fill('Dallas');
+        await page.waitForTimeout(2000);
         
         await page.locator('#living_country').selectOption('USA');
+        await page.waitForTimeout(2000);
 
         // Wait for the AJAX call to replace the #state input with a select dropdown
-        console.log("⏳ Waiting for US states dropdown to load...");
+        console.log("Waiting for US states dropdown to load...");
         await page.waitForSelector('select#state', { timeout: 10000 });
+        
         await page.locator('select#state').selectOption('TX');
+        await page.waitForTimeout(2000);
 
         await page.locator('#zipcode').fill('75001');
+        await page.waitForTimeout(2000);
+        
         await page.locator('#mainEmail').fill('test@example.com');
+        await page.waitForTimeout(2000);
+        
         await page.locator('#phone').fill('(123) 456-7890');
+        await page.waitForTimeout(2000);
+        
         // Select 'no' for coming to Florida to work
         await page.locator('#florida_to_work_no').check({ force: true });
-
-        await page.waitForTimeout(1000);
+        await page.waitForTimeout(2000);
 
         // Click first Continue button
         console.log("👉 Clicking first Continue button...");
@@ -186,19 +211,17 @@ test.describe.serial('Visitor Insurance', () => {
         // Wait for page to react
         await page.waitForTimeout(2000);
 
-
-
         // If the Physical Location restriction modal pops up, confirm to continue
         const locationConsentBtn = page.locator('#confirmEEAHomeCountryyChangeBtn');
         if (await locationConsentBtn.isVisible()) {
-            console.log("⚠️ Physical location restriction consent modal detected. Clicking Continue.");
+            console.log("Physical location restriction consent modal detected. Clicking Continue.");
             await locationConsentBtn.click({ force: true });
             await page.waitForTimeout(2000);
         }
     });
 
     test('14. Review Information Tab', async () => {
-        console.log("🧐 Reviewing plan details on the Review tab...");
+        console.log(" Reviewing plan details on the Review tab...");
         // Wait for the review tab / review details container to be visible (or just click continue on the tab)
         const reviewContinueBtn = page.locator('a[onclick="paymenttab();"]');
         await expect(reviewContinueBtn).toBeVisible({ timeout: 15000 });
@@ -209,24 +232,37 @@ test.describe.serial('Visitor Insurance', () => {
     });
 
     test('15. Fill Payment Details', async () => {
-        console.log("💳 Filling Payment details...");
+        console.log(" Filling Payment details...");
         
         // Select 'no' for coming to Florida to work is done, now confirm billing checkbox on Payment tab
         const billingCheck = page.locator('#billing_check');
         const isChecked = await billingCheck.isChecked();
         if (!isChecked) {
             await page.locator('label[for="billing_check"]').click();
+            await page.waitForTimeout(2000);
         }
         
         await page.locator('#payment_method').selectOption('Vi'); // Visa
+        await page.waitForTimeout(2000);
+        
         await page.locator('#card_holder_name').fill('Neekhil Sharma');
+        await page.waitForTimeout(2000);
+        
         await page.locator('#card_no').fill('4111222233334444');
+        await page.waitForTimeout(2000);
+        
         await page.locator('#card_cvv').fill('123');
+        await page.waitForTimeout(2000);
+        
         await page.locator('#card_month').selectOption('12');
+        await page.waitForTimeout(2000);
+        
         await page.locator('#card_year').selectOption('2028');
+        await page.waitForTimeout(2000);
 
         // How did you hear about us?
         await page.locator('#hear_about').selectOption('Google');
+        await page.waitForTimeout(2000);
 
         // Agree to Terms & Conditions
         await page.locator('label[for="terms_cond"]').click();
@@ -235,7 +271,7 @@ test.describe.serial('Visitor Insurance', () => {
         // Verify the Pay Now button is visible and active
         const payNowBtn = page.locator('button[type="submit"]:has-text("Pay Now")');
         await expect(payNowBtn).toBeVisible({ timeout: 15000 });
-        console.log("🏆 Form successfully completed! Pay Now button is visible. Skipping actual payment submission.");
+        console.log("Form successfully completed! Pay Now button is visible. Skipping actual payment submission.");
     });
 
 });

@@ -14,6 +14,7 @@ import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   testDir: './Test',
   /* Run tests in files in parallel */
+  timeout: 120000,
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
@@ -32,7 +33,7 @@ export default defineConfig({
     video: 'retain-on-failure',
 
     // Take screenshots only on failure to avoid headed-mode DPI rescaling and flickering
-    screenshot: 'only-on-failure',
+    screenshot: 'on',
 
     // Collect trace only on failure
     trace: 'retain-on-failure',
