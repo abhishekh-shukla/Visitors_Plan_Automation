@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "test:example:headed": "playwright test Test/example.spec.ts --headed"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",

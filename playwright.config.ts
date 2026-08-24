@@ -28,15 +28,15 @@ export default defineConfig({
     /* Base URL to use in actions like `await page.goto('')`. */
     // baseURL: 'http://localhost:3000',
 
-    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-       // Record video
-    video: 'on',
+    // Record video only on failure to avoid headed-mode performance overhead
+    video: 'retain-on-failure',
 
-    // Take screenshots
-    screenshot: 'on',
+    // Take screenshots only on failure to avoid headed-mode DPI rescaling and flickering
+    screenshot: 'only-on-failure',
 
-    // Collect trace
-    trace: 'on-first-retry',
+    // Collect trace only on failure
+    trace: 'retain-on-failure',
+
   },
 
   /* Configure projects for major browsers */

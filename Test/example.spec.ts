@@ -4,7 +4,10 @@ test.describe.serial('Visitor Insurance', () => {
     let page: Page;
 
     test.beforeAll(async ({ browser }) => {
-        const context = await browser.newContext({ viewport: { width: 1920, height: 1080 } });
+        const context = await browser.newContext({
+            viewport: null,
+            deviceScaleFactor: undefined
+        });
         page = await context.newPage();
     });
 
