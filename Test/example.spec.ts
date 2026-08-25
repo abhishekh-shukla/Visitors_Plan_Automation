@@ -3,12 +3,123 @@ import { test, expect, Page } from '@playwright/test';
 test.describe.serial('Visitor Insurance', () => {
     let page: Page;
 
+    async function fillDob(index: number, monthVal: string, yearVal: string, dayText: string) {
+        const dobLocator = page.locator(`#tr_dob${index}`);
+        
+        console.log(`Selecting DOB via Datepicker UI for Traveler ${index}: month=${monthVal}, year=${yearVal}, day=${dayText}`);
+        // Click to open the datepicker
+        await dobLocator.click();
+        await page.waitForSelector('#ui-datepicker-div', { state: 'visible', timeout: 5000 });
+        await page.waitForTimeout(500);
+        
+        // Select the year
+        await page.locator('#ui-datepicker-div select.ui-datepicker-year').selectOption(yearVal);
+        await page.waitForTimeout(500);
+        
+        // Select the month (0-indexed: 0 for Jan, 11 for Dec)
+        await page.locator('#ui-datepicker-div select.ui-datepicker-month').selectOption(monthVal);
+        await page.waitForTimeout(500);
+        
+        // Click the specific day inside the active month
+        await page.locator(`#ui-datepicker-div table.ui-datepicker-calendar td:not(.ui-datepicker-other-month) a`)
+            .filter({ hasText: new RegExp(`^${dayText}$`) })
+            .first()
+            .click();
+        await page.waitForTimeout(1500);
+    }
+
+    async function fillTravelerAndMailingInfo(travelers: any[]) {
+        for (let i = 0; i < travelers.length; i++) {
+            const index = i + 1;
+            const t = travelers[i];
+
+            console.log(`Filling details for Traveler ${index}: ${t.firstName} ${t.lastName}`);
+            
+            await page.locator(`#tr_firstName${index}`).fill(t.firstName);
+            await page.waitForTimeout(1000);
+            
+            await page.locator(`#tr_lastName${index}`).fill(t.lastName);
+            await page.waitForTimeout(1000);
+            
+            await page.locator(`#tr_gender${index}`).selectOption(t.gender);
+            await page.waitForTimeout(1000);
+            
+            // Fill Date of Birth
+            await fillDob(index, t.dobMonth, t.dobYear, t.dobDay);
+            
+            await page.locator(`#country_of_citizenship${index}`).selectOption(t.citizenship);
+            await page.waitForTimeout(1000);
+
+            if (index === 1 && t.beneficiary) {
+                await page.locator('#beneficiary_name').fill(t.beneficiary);
+                await page.waitForTimeout(1000);
+            }
+        }
+
+        console.log(" Filling Mailing Address details...");
+        
+        await page.locator('#mailing_fname').fill('Abhishek');
+        await page.waitForTimeout(1000);
+        
+        await page.locator('#mailing_lname').fill('Shukla');
+        await page.waitForTimeout(1000);
+        
+        await page.locator('#address1').fill('123 Main St');
+        await page.waitForTimeout(1000);
+        
+        await page.locator('#city').fill('Dallas');
+        await page.waitForTimeout(1000);
+        
+        await page.locator('#living_country').selectOption('USA');
+        await page.waitForTimeout(1000);
+
+        // Wait for the AJAX call to replace the #state input with a select dropdown
+        console.log("Waiting for US states dropdown to load...");
+        await page.waitForSelector('select#state', { timeout: 10000 });
+        
+        await page.locator('select#state').selectOption('TX');
+        await page.waitForTimeout(1000);
+
+        await page.locator('#zipcode').fill('75001');
+        await page.waitForTimeout(1000);
+        
+        await page.locator('#mainEmail').fill('test@example.com');
+        await page.waitForTimeout(1000);
+        
+        await page.locator('#phone').fill('(123) 456-7890');
+        await page.waitForTimeout(1000);
+        
+        // Select 'no' for coming to Florida to work
+        await page.locator('#florida_to_work_no').check({ force: true });
+        await page.waitForTimeout(1000);
+
+        // Click Continue button
+        console.log("👉 Clicking Continue button...");
+        await page.locator('button[onclick="countinue();"]').click({ force: true });
+        await page.waitForTimeout(2000);
+
+        // Confirm physical location popup if visible
+        const locationConsentBtn = page.locator('#confirmEEAHomeCountryyChangeBtn');
+        if (await locationConsentBtn.isVisible()) {
+            console.log("Physical location restriction consent modal detected. Clicking Continue.");
+            await locationConsentBtn.click({ force: true });
+            await page.waitForTimeout(2000);
+        }
+    }
+
     test.beforeAll(async ({ browser }) => {
         const context = await browser.newContext({
             viewport: null,
             deviceScaleFactor: undefined
         });
         page = await context.newPage();
+        
+        // 🚀 Add Dialog listener to automatically accept the age discrepancy warning dialog
+        page.on('dialog', async dialog => {
+            console.log(`[ALERT/CONFIRM DETECTED] Message: "${dialog.message()}"`);
+            await dialog.accept();
+            console.log("Dialog successfully accepted.");
+        });
     });
 
     test.afterAll(async () => {
@@ -57,14 +168,14 @@ test.describe.serial('Visitor Insurance', () => {
     });
 
     test('6. Enter Applicant Age', async () => {
-        const primaryAge = '32';
+        const primaryAge = '23';
         
         await page.locator('#applicant_age').fill(primaryAge);
         await page.waitForTimeout(2000);
     });
 
     test('7. Enter Spouse Age', async () => {
-        const secondaryAge = '33';
+        const secondaryAge = '24';
         
         await page.locator('#spouse_age').fill(secondaryAge);
         await page.waitForTimeout(2000);
@@ -125,114 +236,58 @@ test.describe.serial('Visitor Insurance', () => {
         await buyButton.click({ force: true });
         console.log(" Successfully clicked the Buy button for Atlas Premium America!");
         
-        await page.waitForTimeout(4000); 
+        await page.waitForTimeout(4000);
     });
 
-   test('12. Fill Traveler Information', async () => {
-        // Fill details for Traveler 1 to 7. DOBs are prepopulated by the page automatically.
+    test('12. Fill Traveler Information', async () => {
         const travelers = [
-            { firstName: 'Abhishek', lastName: 'Shukla', gender: 'M', citizenship: 'IND', beneficiary: 'Shushama Shukla' },
-            { firstName: 'Jane', lastName: 'Shukla', gender: 'F', citizenship: 'IND' },
-            { firstName: 'Bobby', lastName: 'Shukla', gender: 'M', citizenship: 'IND' },
-            { firstName: 'Billy', lastName: 'Shukla', gender: 'M', citizenship: 'IND' },
-            { firstName: 'Lily', lastName: 'Shukla', gender: 'F', citizenship: 'IND' },
-            { firstName: 'Lucy', lastName: 'Shukla', gender: 'F', citizenship: 'IND' },
-            { firstName: 'Sally', lastName: 'Shukla', gender: 'F', citizenship: 'IND' }
+            { firstName: 'Abhishek', lastName: 'Shukla', gender: 'M', citizenship: 'IND', beneficiary: 'Shushama Shukla', dobMonth: '3', dobYear: '2003', dobDay: '15' },
+            { firstName: 'Jane', lastName: 'Shukla', gender: 'F', citizenship: 'IND', dobMonth: '4', dobYear: '2002', dobDay: '16' },
+            { firstName: 'Bobby', lastName: 'Shukla', gender: 'M', citizenship: 'IND', dobMonth: '3', dobYear: '2018', dobDay: '15' },
+            { firstName: 'Billy', lastName: 'Shukla', gender: 'M', citizenship: 'IND', dobMonth: '4', dobYear: '2018', dobDay: '16' },
+            { firstName: 'Lily', lastName: 'Shukla', gender: 'F', citizenship: 'IND', dobMonth: '3', dobYear: '2010', dobDay: '15' },
+            { firstName: 'Lucy', lastName: 'Shukla', gender: 'F', citizenship: 'IND', dobMonth: '4', dobYear: '2010', dobDay: '16' },
+            { firstName: 'Sally', lastName: 'Shukla', gender: 'F', citizenship: 'IND', dobMonth: '5', dobYear: '2010', dobDay: '17' }
         ];
 
-        for (let i = 0; i < travelers.length; i++) {
-            const index = i + 1;
-            const t = travelers[i];
-
-            console.log(`Filling details for Traveler ${index}: ${t.firstName} ${t.lastName}`);
-            
-            await page.locator(`#tr_firstName${index}`).fill(t.firstName);
-            await page.waitForTimeout(2000);
-            
-            await page.locator(`#tr_lastName${index}`).fill(t.lastName);
-            await page.waitForTimeout(2000);
-            
-            await page.locator(`#tr_gender${index}`).selectOption(t.gender);
-            await page.waitForTimeout(2000);
-            
-            await page.locator(`#country_of_citizenship${index}`).selectOption(t.citizenship);
-            await page.waitForTimeout(2000);
-
-            if (index === 1 && t.beneficiary) {
-                await page.locator('#beneficiary_name').fill(t.beneficiary);
-                await page.waitForTimeout(2000);
-            }
-        }
-        await page.waitForTimeout(2000);
+        console.log("--- Filling Traveler Info ---");
+        await fillTravelerAndMailingInfo(travelers);
     });
 
     test('13. Fill Mailing Address and Transition', async () => {
-        console.log(" Filling Mailing Address details...");
-        
-        await page.locator('#mailing_fname').fill('Abhishek');
-        await page.waitForTimeout(2000);
-        
-        await page.locator('#mailing_lname').fill('Shukla');
-        await page.waitForTimeout(2000);
-        
-        await page.locator('#address1').fill('123 Main St');
-        await page.waitForTimeout(2000);
-        
-        await page.locator('#city').fill('Dallas');
-        await page.waitForTimeout(2000);
-        
-        await page.locator('#living_country').selectOption('USA');
-        await page.waitForTimeout(2000);
-
-        // Wait for the AJAX call to replace the #state input with a select dropdown
-        console.log("Waiting for US states dropdown to load...");
-        await page.waitForSelector('select#state', { timeout: 10000 });
-        
-        await page.locator('select#state').selectOption('TX');
-        await page.waitForTimeout(2000);
-
-        await page.locator('#zipcode').fill('75001');
-        await page.waitForTimeout(2000);
-        
-        await page.locator('#mainEmail').fill('test@example.com');
-        await page.waitForTimeout(2000);
-        
-        await page.locator('#phone').fill('(123) 456-7890');
-        await page.waitForTimeout(2000);
-        
-        // Select 'no' for coming to Florida to work
-        await page.locator('#florida_to_work_no').check({ force: true });
-        await page.waitForTimeout(2000);
-
-        // Click first Continue button
-        console.log("👉 Clicking first Continue button...");
-        await page.locator('button[onclick="countinue();"]').click({ force: true });
-
-        // Wait for page to react
-        await page.waitForTimeout(2000);
-
-        // If the Physical Location restriction modal pops up, confirm to continue
-        const locationConsentBtn = page.locator('#confirmEEAHomeCountryyChangeBtn');
-        if (await locationConsentBtn.isVisible()) {
-            console.log("Physical location restriction consent modal detected. Clicking Continue.");
-            await locationConsentBtn.click({ force: true });
-            await page.waitForTimeout(2000);
-        }
+        console.log("Mailing address and traveler transition complete.");
     });
 
     test('14. Review Information Tab', async () => {
         console.log(" Reviewing plan details on the Review tab...");
-        // Wait for the review tab / review details container to be visible (or just click continue on the tab)
         const reviewContinueBtn = page.locator('a[onclick="paymenttab();"]');
         await expect(reviewContinueBtn).toBeVisible({ timeout: 15000 });
         
         await page.waitForTimeout(1000);
         await reviewContinueBtn.click({ force: true });
-        await page.waitForTimeout(2000);
+        await page.waitForTimeout(4000);
+        
+        // Check if the HTML modal Age Confirmation is visible
+        const confirmBtn = page.locator('#confirmDiscrepancyChangeBtn');
+        if (await confirmBtn.isVisible()) {
+            console.log("Age Confirmation modal detected. Clicking Confirm.");
+            await confirmBtn.click({ force: true });
+            await page.waitForTimeout(3000);
+            
+            console.log("Clicking Continue button again after confirming age discrepancy...");
+            await reviewContinueBtn.click({ force: true });
+            await page.waitForTimeout(4000);
+        }
+        
+        // Wait for the Payment tab to load to ensure transition completed
+        await page.waitForSelector('#payment_method', { state: 'visible', timeout: 20000 });
     });
 
     test('15. Fill Payment Details', async () => {
         console.log(" Filling Payment details...");
+        
+        // Ensure Payment tab element is visible before starting
+        await page.waitForSelector('#payment_method', { state: 'visible', timeout: 20000 });
         
         // Select 'no' for coming to Florida to work is done, now confirm billing checkbox on Payment tab
         const billingCheck = page.locator('#billing_check');
