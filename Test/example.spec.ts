@@ -94,7 +94,7 @@ test.describe.serial('Visitor Insurance', () => {
         await page.waitForTimeout(1000);
 
         // Click Continue button
-        console.log("👉 Clicking Continue button...");
+        console.log("Clicking Continue button...");
         await page.locator('button[onclick="countinue();"]').click({ force: true });
         await page.waitForTimeout(2000);
 
@@ -114,7 +114,7 @@ test.describe.serial('Visitor Insurance', () => {
         });
         page = await context.newPage();
         
-        // 🚀 Add Dialog listener to automatically accept the age discrepancy warning dialog
+        // Add Dialog listener to automatically accept the age discrepancy warning dialog
         page.on('dialog', async dialog => {
             console.log(`[ALERT/CONFIRM DETECTED] Message: "${dialog.message()}"`);
             await dialog.accept();
@@ -243,11 +243,11 @@ test.describe.serial('Visitor Insurance', () => {
         const travelers = [
             { firstName: 'Abhishek', lastName: 'Shukla', gender: 'M', citizenship: 'IND', beneficiary: 'Shushama Shukla', dobMonth: '3', dobYear: '2003', dobDay: '15' },
             { firstName: 'Jane', lastName: 'Shukla', gender: 'F', citizenship: 'IND', dobMonth: '4', dobYear: '2002', dobDay: '16' },
-            { firstName: 'Bobby', lastName: 'Shukla', gender: 'M', citizenship: 'IND', dobMonth: '3', dobYear: '2018', dobDay: '15' },
+            { firstName: 'Bobby', lastName: 'Shukla', gender: 'M', citizenship: 'IND', dobMonth: '3', dobYear: '2017', dobDay: '15' },
             { firstName: 'Billy', lastName: 'Shukla', gender: 'M', citizenship: 'IND', dobMonth: '4', dobYear: '2018', dobDay: '16' },
-            { firstName: 'Lily', lastName: 'Shukla', gender: 'F', citizenship: 'IND', dobMonth: '3', dobYear: '2010', dobDay: '15' },
+            { firstName: 'Lily', lastName: 'Shukla', gender: 'F', citizenship: 'IND', dobMonth: '3', dobYear: '2009', dobDay: '15' },
             { firstName: 'Lucy', lastName: 'Shukla', gender: 'F', citizenship: 'IND', dobMonth: '4', dobYear: '2010', dobDay: '16' },
-            { firstName: 'Sally', lastName: 'Shukla', gender: 'F', citizenship: 'IND', dobMonth: '5', dobYear: '2010', dobDay: '17' }
+            { firstName: 'Sally', lastName: 'Shukla', gender: 'F', citizenship: 'IND', dobMonth: '5', dobYear: '2011', dobDay: '17' }
         ];
 
         console.log("--- Filling Traveler Info ---");
@@ -260,10 +260,14 @@ test.describe.serial('Visitor Insurance', () => {
 
     test('14. Review Information Tab', async () => {
         console.log(" Reviewing plan details on the Review tab...");
+        
         const reviewContinueBtn = page.locator('a[onclick="paymenttab();"]');
         await expect(reviewContinueBtn).toBeVisible({ timeout: 15000 });
         
+        // 🎯 Continue button ko screen ke center mein scroll karo click karne se pehle
+        await reviewContinueBtn.evaluate((node) => node.scrollIntoView({ behavior: 'smooth', block: 'center' }));
         await page.waitForTimeout(1000);
+        
         await reviewContinueBtn.click({ force: true });
         await page.waitForTimeout(4000);
         
@@ -271,10 +275,16 @@ test.describe.serial('Visitor Insurance', () => {
         const confirmBtn = page.locator('#confirmDiscrepancyChangeBtn');
         if (await confirmBtn.isVisible()) {
             console.log("Age Confirmation modal detected. Clicking Confirm.");
+            
+            // 🎯 Modal ke confirm button ko center mein laao
+            await confirmBtn.evaluate((node) => node.scrollIntoView({ behavior: 'smooth', block: 'center' }));
             await confirmBtn.click({ force: true });
             await page.waitForTimeout(3000);
             
             console.log("Clicking Continue button again after confirming age discrepancy...");
+            
+            // 🎯 Wapas Continue button pe ja kar usko center mein laao
+            await reviewContinueBtn.evaluate((node) => node.scrollIntoView({ behavior: 'smooth', block: 'center' }));
             await reviewContinueBtn.click({ force: true });
             await page.waitForTimeout(4000);
         }
@@ -293,39 +303,60 @@ test.describe.serial('Visitor Insurance', () => {
         const billingCheck = page.locator('#billing_check');
         const isChecked = await billingCheck.isChecked();
         if (!isChecked) {
-            await page.locator('label[for="billing_check"]').click();
+            const billingLabel = page.locator('label[for="billing_check"]');
+            // Screen ko is element ke center mein scroll karo
+            await billingLabel.evaluate((node) => node.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+            await billingLabel.click();
             await page.waitForTimeout(2000);
         }
         
-        await page.locator('#payment_method').selectOption('Vi'); // Visa
+        const paymentMethod = page.locator('#payment_method');
+        await paymentMethod.evaluate((node) => node.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+        await paymentMethod.selectOption('Vi'); // Visa
         await page.waitForTimeout(2000);
         
-        await page.locator('#card_holder_name').fill('Neekhil Sharma');
+        const cardHolderName = page.locator('#card_holder_name');
+        await cardHolderName.evaluate((node) => node.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+        await cardHolderName.fill('Abhishek Shukla');
         await page.waitForTimeout(2000);
         
-        await page.locator('#card_no').fill('4111222233334444');
+        const cardNo = page.locator('#card_no');
+        await cardNo.evaluate((node) => node.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+        await cardNo.fill('4111222233334444');
         await page.waitForTimeout(2000);
         
-        await page.locator('#card_cvv').fill('123');
+        const cardCvv = page.locator('#card_cvv');
+        await cardCvv.evaluate((node) => node.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+        await cardCvv.fill('123');
         await page.waitForTimeout(2000);
         
-        await page.locator('#card_month').selectOption('12');
+        const cardMonth = page.locator('#card_month');
+        await cardMonth.evaluate((node) => node.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+        await cardMonth.selectOption('12');
         await page.waitForTimeout(2000);
         
-        await page.locator('#card_year').selectOption('2028');
+        const cardYear = page.locator('#card_year');
+        await cardYear.evaluate((node) => node.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+        await cardYear.selectOption('2028');
         await page.waitForTimeout(2000);
 
         // How did you hear about us?
-        await page.locator('#hear_about').selectOption('Google');
-        await page.waitForTimeout(2000);
+        const hearAbout = page.locator('#hear_about');
+        await hearAbout.evaluate((node) => node.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+        await hearAbout.selectOption('Google');
+        await page.waitForTimeout(10000);
 
         // Agree to Terms & Conditions
-        await page.locator('label[for="terms_cond"]').click();
-        await page.waitForTimeout(2000);
+        const termsCond = page.locator('label[for="terms_cond"]');
+        await termsCond.evaluate((node) => node.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+        await termsCond.click();
+        await page.waitForTimeout(10000);
 
         // Verify the Pay Now button is visible and active
         const payNowBtn = page.locator('button[type="submit"]:has-text("Pay Now")');
-        await expect(payNowBtn).toBeVisible({ timeout: 15000 });
+        await payNowBtn.evaluate((node) => node.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+        await expect(payNowBtn).toBeVisible({ timeout: 18000 });
+        
         console.log("Form successfully completed! Pay Now button is visible. Skipping actual payment submission.");
     });
 
