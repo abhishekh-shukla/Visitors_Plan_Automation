@@ -13,5 +13,9 @@
   "devDependencies": {
     "@playwright/test": "^1.62.1",
     "@types/node": "^26.2.0"
+  },
+  "dependencies": {
+    "@zerostep/playwright": "^0.1.5",
+    "auto-playwright": "^1.16.1"
   }
 }

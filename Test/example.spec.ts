@@ -1,5 +1,6 @@
 import { test, expect, Page } from '@playwright/test';
 
+
 test.describe.serial('Visitor Insurance', () => {
     let page: Page;
 
@@ -150,7 +151,7 @@ test.describe.serial('Visitor Insurance', () => {
     });
 
     test('4. Enter Start Date', async () => {
-        const startDate = '08/28/2026'; 
+        const startDate = '08/29/2026'; 
 
         const startDateInput = page.locator('#sdate');
         await startDateInput.fill(startDate);
@@ -159,7 +160,7 @@ test.describe.serial('Visitor Insurance', () => {
     });
 
     test('5. Enter End Date', async () => {
-        const endDate = '08/17/2027'; 
+        const endDate = '08/18/2027'; 
 
         const endDateInput = page.locator('#edate');
         await endDateInput.fill(endDate);

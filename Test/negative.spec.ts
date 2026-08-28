@@ -1,42 +1,35 @@
 import { test, expect } from '@playwright/test';
+// 🤖 Step 1: auto-playwright import kiya
+import { auto } from 'auto-playwright'; 
 
-test.describe('Visitor Insurance - Negative Scenarios', () => {
+test.describe('Visitor Insurance - Auto-Playwright AI Negative Scenarios', () => {
     
-    // Load a fresh page before each negative test runs to ensure tests are independent
+    // Har test se pehle fresh page load hoga
     test.beforeEach(async ({ page }) => {
         await page.goto('https://www.visitorplans.com/', { waitUntil: 'domcontentloaded' });
         
-        // Close the initial popup if it appears on the screen
-        const popup = page.locator('.clip-image_003');
-        if (await popup.isVisible({ timeout: 5000 })) {
-            await popup.click({ force: true });
-        }
-        await page.waitForTimeout(1500); // Wait briefly for the UI to stabilize
+        // 🤖 AI se bol rahe hain ki agar popup hai toh close kar de
+        console.log("AI checking for popups...");
+        // auto-playwright automatically samajh jayega ki popup close karna hai
+        await auto('If there is a promotional popup or modal on the screen, click its close icon or button. If not, do nothing.', { page, test });
+        
+        await page.waitForTimeout(1500); // UI stable hone ke liye
     });
 
     test('1. Verify Coverage exceeding limit (Dates)', async ({ page }) => {
-        console.log("Testing Coverage Exceeding Limit...");
-        const startDateInput = page.locator('#sdate');
-        const endDateInput = page.locator('#edate');
-
-        // Scroll to the start date field (centered) and enter a valid date
-        await startDateInput.evaluate((node) => node.scrollIntoView({ behavior: 'smooth', block: 'center' }));
-        await startDateInput.fill('08/28/2026');
-        await startDateInput.press('Tab');
+        console.log("Testing Coverage Exceeding Limit with AI...");
         
-        // Enter an end date 4 years in the future to intentionally exceed the max duration limit
-        await endDateInput.evaluate((node) => node.scrollIntoView({ behavior: 'smooth', block: 'center' }));
-        await endDateInput.fill('08/28/2030');
-        await endDateInput.press('Tab');
+        // 🤖 AI khud Date field dhoondhega aur fill karega
+        await auto('Enter 08/28/2026 into the Start Date input field and press Tab on the keyboard', { page, test });
         
-        // Pause so the error message is clearly visible in the video recording
+        // End date 4 saal baad ki daal rahe hain
+        await auto('Enter 08/28/2030 into the End Date input field and press Tab on the keyboard', { page, test });
+        
+        // Wait kar rahe hain taaki video mein error message saaf dikhe
         await page.waitForTimeout(3000); 
     });
 
     test('2. Verify Applicant Age with Invalid Inputs', async ({ page }) => {
-        const applicantAgeInput = page.locator('#applicant_age');
-        
-        // List of all negative/invalid inputs to test
         const invalidAges = [
             { desc: 'Below Minimum', val: '0' },
             { desc: 'Above Maximum', val: '150' },
@@ -46,25 +39,21 @@ test.describe('Visitor Insurance - Negative Scenarios', () => {
             { desc: 'Negative Number', val: '-5' }
         ];
 
-        console.log("--- Starting Negative Tests for Applicant Age ---");
+        console.log("--- Starting AI Negative Tests for Applicant Age ---");
         for (const tc of invalidAges) {
-            console.log(`Testing Applicant Age with ${tc.desc}: "${tc.val}"`);
+            console.log(`AI entering Applicant Age ${tc.desc}: "${tc.val}"`);
             
-            // Scroll the element to the center of the screen before entering data
-            await applicantAgeInput.evaluate((node) => node.scrollIntoView({ behavior: 'smooth', block: 'center' }));
-            await applicantAgeInput.fill(tc.val);
-            await applicantAgeInput.press('Tab');
+            // 🤖 AI ko age daalne aur Tab dabane ka aadesh
+            await auto(`Enter "${tc.val}" into the Applicant Age input field and press Tab`, { page, test });
             
-            // Wait to capture the UI's reaction (error messages) in the video
             await page.waitForTimeout(1500); 
-            // Clear the field for the next invalid input in the loop
-            await applicantAgeInput.clear(); 
+            
+            // 🤖 AI ko field saaf karne ka aadesh
+            await auto('Clear the text inside the Applicant Age input field completely', { page, test });
         }
     });
 
     test('3. Verify Spouse Age with Invalid Inputs', async ({ page }) => {
-        const spouseAgeInput = page.locator('#spouse_age');
-        
         const invalidSpouseAges = [
             { desc: 'Alphabets', val: 'xyz' },
             { desc: 'Decimal Value', val: '30.9' },
@@ -72,24 +61,25 @@ test.describe('Visitor Insurance - Negative Scenarios', () => {
             { desc: 'Greater than allowed limit', val: '200' }
         ];
 
-        console.log("--- Starting Negative Tests for Spouse Age ---");
+        console.log("--- Starting AI Negative Tests for Spouse Age ---");
         for (const tc of invalidSpouseAges) {
-            console.log(`Testing Spouse Age with ${tc.desc}: "${tc.val}"`);
+            console.log(`AI entering Spouse Age ${tc.desc}: "${tc.val}"`);
             
-            // Scroll to center
-            await spouseAgeInput.evaluate((node) => node.scrollIntoView({ behavior: 'smooth', block: 'center' }));
-            await spouseAgeInput.fill(tc.val);
-            await spouseAgeInput.press('Tab');
+            // 🤖 AI spouse age bharega
+            await auto(`Enter "${tc.val}" into the Spouse Age input field and press Tab`, { page, test });
             
             await page.waitForTimeout(1500);
-            await spouseAgeInput.clear();
+            
+            // 🤖 AI se dabba khali karwana
+            await auto('Clear the text inside the Spouse Age input field completely', { page, test });
         }
     });
 
     test('4. Verify system handles server error (500)', async ({ page }) => {
         console.log("Simulating 500 Server Error on Quote Submission...");
         
-        // Intercept the API request and forcefully return a 500 Internal Server Error
+        // ⚠️ API request ko intercept karke hum zabardasti 500 error bhej rahe hain
+        // Yeh manual hi rahega kyunki AI sirf UI chalata hai, Network nahi
         await page.route('**/*quote*', route => {
             route.fulfill({
                 status: 500,
@@ -98,17 +88,11 @@ test.describe('Visitor Insurance - Negative Scenarios', () => {
             });
         });
 
-        // Enter minimum valid data required to activate the Get Quote button
-        const applicantAgeInput = page.locator('#applicant_age');
-        await applicantAgeInput.evaluate((node) => node.scrollIntoView({ behavior: 'smooth', block: 'center' }));
-        await applicantAgeInput.fill('30');
+        // 🤖 AI form bharega aur button click karega
+        await auto('Enter 30 into the Applicant Age input field', { page, test });
+        await auto('Click the Get A Quote button', { page, test });
         
-        const getQuoteBtn = page.locator('button[type="submit"]:has-text("Get A Quote")');
-        await getQuoteBtn.evaluate((node) => node.scrollIntoView({ behavior: 'smooth', block: 'center' }));
-        await getQuoteBtn.click({ force: true });
-        
-        // Wait to record how the frontend UI handles and displays the server error
+        // Server error aane par website kaisa dikhti hai, wo capture karne ke liye wait
         await page.waitForTimeout(4000); 
     });
-
 });
